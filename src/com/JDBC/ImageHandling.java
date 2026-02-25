@@ -1,11 +1,12 @@
 package com.JDBC;
 
 import java.io.File;
-import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class ImageHandling {
@@ -15,47 +16,57 @@ public class ImageHandling {
         String url = "jdbc:mysql://127.0.0.1:3306/mydatabase";
         String username = "root";
         String password = "15062005Ay@";
-        String path = "C:\\Users\\Lenovo\\OneDrive\\Desktop\\Image\\at.jpg";
-        String query = "INSERT INTO image_table(image_data) VALUES(?)";
-
-        File file = new File(path);
-
-        // ✅ Check if file exists first
-        if (!file.exists()) {
-            System.out.println("File not found at: " + path);
-            return;
-        }
+        String folder_path = "C:\\Users\\Lenovo\\OneDrive\\Pictures\\JDBC_images\\";
+        String query = "SELECT image_data from image_table where image_id = (?)";
 
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
 
-            try (Connection con = DriverManager.getConnection(url, username, password);
-                 FileInputStream fis = new FileInputStream(file);
-                 PreparedStatement ps = con.prepareStatement(query)) {
+            try {
+                Connection con = DriverManager.getConnection(url, username, password);
+                System.out.println("Driver loaded Successfully");
 
-                byte[] imageData = fis.readAllBytes();
-                ps.setBytes(1, imageData);
+                PreparedStatement preparedStatement = con.prepareStatement(query);
+                preparedStatement.setInt(1, 1);
 
-                int affectedRows = ps.executeUpdate();
+                ResultSet resultSet = preparedStatement.executeQuery();
 
-                if (affectedRows > 0) {
-                    System.out.println("Image inserted successfully.");
+                if (resultSet.next()) {
+                    System.out.println("Image found in database.");
+
+                    byte[] image_data = resultSet.getBytes("image_data");
+
+                    // Ensure folder exists
+                    File folder = new File(folder_path);
+                    if (!folder.exists()) {
+                        folder.mkdirs();
+                    }
+
+                    String image_path = folder_path + "Extracted_Image.jpg";
+                    FileOutputStream outputStream = new FileOutputStream(image_path);
+                    outputStream.write(image_data);
+                    outputStream.close();
+
+                    System.out.println("Image saved successfully.");
                 } else {
-                    System.out.println("Image insertion failed.");
+                    System.out.println("Image not found!!!");
                 }
 
+                resultSet.close();
+                preparedStatement.close();
+                con.close();
+
+            } catch (SQLException e) {
+                System.out.println("Database error occurred.");
+                e.printStackTrace();
+
+            } catch (IOException e) {
+                System.out.println("Error while writing the file.");
+                e.printStackTrace();
             }
 
         } catch (ClassNotFoundException e) {
             System.out.println("JDBC Driver not found.");
-            e.printStackTrace();
-
-        } catch (SQLException e) {
-            System.out.println("Database error occurred.");
-            e.printStackTrace();
-
-        } catch (IOException e) {
-            System.out.println("Error while reading the file.");
             e.printStackTrace();
 
         } catch (Exception e) {

@@ -87,4 +87,19 @@ public static void main(String[] args) throws ClassNotFoundException {
         	System.out.println(e.getMessage());
         }
     }
+
+public void setDouble(int i, double d) {
+	// TODO Auto-generated method stub
+	
+}
+
+public void setString(int i, String string) {
+	// TODO Auto-generated method stub
+	
+}
+
+public void executeUpdate() {
+	// TODO Auto-generated method stub
+	
+}
 }
